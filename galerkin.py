@@ -55,6 +55,11 @@ class FourierGalerkinSolver:
             u += coeffs[i] * np.exp(1j * 2 * np.pi * n * x_grid / self.L) / sqrtL
         return u
     
+    def derivative_coeffs(self, coeffs, order=1):
+        k = 2 * np.pi * self.modes / self.L
+        factor = (1j * k) ** order
+        return factor * coeffs
+    
     def l2_norm(self, coeffs):
         return np.sqrt(np.sum(np.abs(coeffs)**2))
     
