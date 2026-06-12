@@ -36,13 +36,15 @@ class FourierGalerkinSolver:
         M = M_fine
         x = np.linspace(0, self.L, M, endpoint=False)
         f_vals = func(x)
-        fft = np.fft.fft(f_vals)
+        F = np.fft.fft(f_vals)
 
-        coeffs = np.zeros(self.size, dtype=complex)
+        coeffs = np.zeros(self.size)
         sqrtL = np.sqrt(self.L)
-        for i, k in enumerate(self.modes):
-            idx = k % M
-            coeffs[i] = (sqrtL / M) * fft[idx]
+        coeffs[0] = (sqrtL / M) * F[0].real
+        fac = np.sqrt(2.0 * self.L) / M
+        for n in range(1, self.N + 1):
+            coeffs[2 * n - 1] = fac * F[n].real     # косинусный множитель
+            coeffs[2 * n] = -fac * F[n].imag        # синусный множитель
         return coeffs
 
     def solve(self, L_mat, rhs_coeffs):

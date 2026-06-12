@@ -21,29 +21,40 @@ def identity_matrix(N): # Матрица оператора тождества
     return np.eye(size)
 
 
-def diff_matrix(N, L, order=1):
-    modes = np.arange(-N, N + 1)
-    k = 2*np.pi*modes/L
+def _diff_block(k, order):
+    J_powers = {
+        0: np.array([[1.0, 0.0], [0.0, 1.0]]),
+        1: np.array([[0.0, 1.0], [-1.0, 0.0]]),
+        2: np.array([[-1.0, 0.0], [0.0, -1.0]]),
+        3: np.array([[0.0, -1.0], [1.0, 0.0]]),
+    }
+    return (k ** order) * J_powers[order % 4]
 
-    if order == 1:
-        diag = 1j*k
-    elif order == 2:
-        diag = -k**2
-    else:
-        diag = (1j*k)**order
-    return np.diag(diag)
+def diff_matrix(N, L, order=1):
+    size = 2 * N + 1
+    mat = np.zeros((size, size))
+    for n in range(1, N + 1):
+        k = 2 * np.pi * n / L
+        i = 2 * n - 1
+        mat[i:i + 2, i:i + 2] = _diff_block(k, order)
+    return mat
 
 
 def mult_matrix(N, L, func, M_fine=None):
-    coeffs_wide = _compute_fourier_coeffs(func, 2*N, L, M_fine)
-    sqrtL = np.sqrt(L)
-    size = 2*N + 1
-    mat = np.zeros((size, size), dtype=complex)
-    modes = np.arange(-N, N + 1)
+    size = 2 * N + 1
+    if M_fine is None:
+        M_fine = max(8 * N + 1, 256)
+    M = M_fine
+    x = np.linspace(0, L, M, endpoint=False)
+    dx = L / M
 
-    for i, m in enumerate(modes):
-        for j, n in enumerate(modes):
-            p = m - n               
-            idx = p + 2*N         
-            mat[i, j] = coeffs_wide[idx]/sqrtL
-    return mat
+    Phi = np.empty((M, size))
+    Phi[:, 0] = 1.0 / np.sqrt(L)
+    norm = np.sqrt(2.0 / L)
+    for n in range(1, N + 1):
+        k = 2 * np.pi * n / L
+        Phi[:, 2 * n - 1] = norm * np.cos(k * x)
+        Phi[:, 2 * n] = norm * np.sin(k * x)
+
+    g = func(x)
+    return (Phi.T * (g * dx)) @ Phi
