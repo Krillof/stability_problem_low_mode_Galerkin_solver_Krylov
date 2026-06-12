@@ -60,6 +60,16 @@ class FourierGalerkinSolver:
         factor = (1j * k) ** order
         return factor * coeffs
     
+    def compute_error(self, coeffs, exact_func, x_grid=None, num_points=200):
+        if x_grid is None:
+            x_grid = np.linspace(0, self.L, num_points)
+        u_approx = self.reconstruct(coeffs, x_grid)
+        u_exact = exact_func(x_grid)
+        diff = u_approx - u_exact
+        L2_err = np.sqrt(np.trapz(np.abs(diff)**2, x_grid))
+        max_err = np.max(np.abs(diff))
+        return {'L2': L2_err, 'max_abs': max_err}
+    
     def l2_norm(self, coeffs):
         return np.sqrt(np.sum(np.abs(coeffs)**2))
     
