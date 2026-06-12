@@ -78,3 +78,65 @@ class FourierGalerkinSolver:
 
     def eigenfunction(self, coeffs, x_grid):
         return self.reconstruct(coeffs, x_grid)
+    
+    def plot_solution(self, coeffs, x_grid=None, num_points=200,
+                      plot_real=True, plot_imag=False, title=None,
+                      label=None, show=True, **plot_kwargs):
+        if x_grid is None:
+            x_grid = np.linspace(0, self.L, num_points)
+        u = self.reconstruct(coeffs, x_grid)
+
+        fig, ax = plt.subplots(figsize=(8, 4))
+        if plot_real:
+            lbl = f'{label} (real)' if label else 'Re(u)'
+            ax.plot(x_grid, u.real, label=lbl, **plot_kwargs)
+        if plot_imag:
+            lbl = f'{label} (imag)' if label else 'Im(u)'
+            ax.plot(x_grid, u.imag, '--', label=lbl, **plot_kwargs)
+        ax.set_xlabel('x')
+        ax.set_ylabel('u')
+        if title:
+            ax.set_title(title)
+        if plot_real and plot_imag:
+            ax.legend()
+        ax.grid(True)
+        if show:
+            plt.show()
+        return fig, ax
+
+    def plot_eigenfunction(self, eigvec, eigenvalue, x_grid=None,
+                           num_points=200, title=None, show=True, **plot_kwargs):
+        if title is None:
+            title = f'Eigenfunction, λ = {eigenvalue.real:.4f}'
+        return self.plot_solution(eigvec, x_grid=x_grid, num_points=num_points,
+                                  plot_real=True, plot_imag=False,
+                                  title=title, show=show, **plot_kwargs)
+
+    def plot_eigenvalues(self, eigvals, title='Eigenvalues',
+                     show=True, mark_real_axis=True, ylim=None,
+                     **scatter_kwargs):
+        
+        fig, ax = plt.subplots(figsize=(6, 6))
+        if 's' not in scatter_kwargs:
+            scatter_kwargs['s'] = 80
+        ax.scatter(eigvals.real, eigvals.imag, **scatter_kwargs)
+        ax.set_xlabel('Re(λ)')
+        ax.set_ylabel('Im(λ)')
+        ax.set_title(title)
+        if mark_real_axis:
+            ax.axhline(y=0, color='gray', linestyle='--', linewidth=0.8)
+            ax.axvline(x=0, color='gray', linestyle='--', linewidth=0.8)
+        ax.grid(True, alpha=0.3)
+        ax.set_aspect('equal')
+
+        
+        if ylim is not None:
+            ax.set_ylim(ylim)
+        else:
+            im_min, im_max = np.min(eigvals.imag), np.max(eigvals.imag)
+            if np.allclose(im_min, im_max):
+                ax.set_ylim(-1, 1)  
+
+        if show:
+            plt.show()
+        return fig, ax
