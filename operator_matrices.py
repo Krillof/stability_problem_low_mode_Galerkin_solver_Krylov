@@ -23,7 +23,7 @@ def identity_matrix(N): # Матрица оператора тождества
 
 def diff_matrix(N, L, order=1):
     modes = np.arange(-N, N + 1)
-    k = modes/L
+    k = 2*np.pi*modes/L
 
     if order == 1:
         diag = 1j*k
