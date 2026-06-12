@@ -46,3 +46,35 @@ class FourierGalerkinSolver:
 
     def solve(self, L_mat, rhs_coeffs):
         return solve(L_mat, rhs_coeffs)
+    
+    def reconstruct(self, coeffs, x_grid):
+        sqrtL = np.sqrt(self.L)
+        u = np.zeros_like(x_grid, dtype=complex)
+        for i, n in enumerate(self.modes):
+            u += coeffs[i] * np.exp(1j * 2 * np.pi * n * x_grid / self.L) / sqrtL
+        return u
+    
+    def eigenvalues(self, term_list, k=None, return_eigenvectors=False, sort_by='real'):
+        L_mat = self.assemble_operator(term_list)
+        w, vr = eig(L_mat, left=False, right=True)
+
+        if sort_by == 'real':
+            idx = np.argsort(w.real)
+        elif sort_by == 'magnitude':
+            idx = np.argsort(np.abs(w))
+        else:
+            idx = np.arange(len(w))
+
+        w_sorted = w[idx]
+        if k is not None:
+            w_sorted = w_sorted[:k]
+            idx = idx[:k]
+
+        if return_eigenvectors:
+            v_sorted = vr[:, idx]
+            return w_sorted, v_sorted
+        else:
+            return w_sorted
+
+    def eigenfunction(self, coeffs, x_grid):
+        return self.reconstruct(coeffs, x_grid)
