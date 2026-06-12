@@ -1,6 +1,7 @@
 import numpy as np
+from scipy.linalg import solve, eig
 import matplotlib.pyplot as plt
-from scipy.linalg import solve
+from scipy.io import savemat
 
 class FourierGalerkinSolver:
     def __init__(self, N, L=2 * np.pi):
@@ -140,3 +141,59 @@ class FourierGalerkinSolver:
         if show:
             plt.show()
         return fig, ax
+    
+    def save_solution(self, coeffs, filename, format='npy'):
+        if format == 'mat':
+            filename = filename if filename.endswith('.mat') else filename + '.mat'
+            mdic = {
+                'coeffs': coeffs,
+                'N': self.N,
+                'L': self.L,
+                'modes': self.modes
+            }
+            savemat(filename, mdic)
+        elif format == 'npy':
+            filename = filename if filename.endswith('.npy') else filename + '.npy'
+            np.save(filename, coeffs)
+        elif format == 'npz':
+            filename = filename if filename.endswith('.npz') else filename + '.npz'
+            np.savez(filename, coeffs=coeffs)
+        else:
+            raise ValueError("format must be 'npy', 'npz' or 'mat'")
+
+    def save_eigenvalues(self, eigvals, eigvecs=None, filename='eigenvalues',
+                         format='npz'):
+        if format == 'mat':
+            filename = filename if filename.endswith('.mat') else filename + '.mat'
+            mdic = {'eigvals': eigvals}
+            if eigvecs is not None:
+                mdic['eigvecs'] = eigvecs
+            mdic['N'] = self.N
+            mdic['L'] = self.L
+            mdic['modes'] = self.modes
+            savemat(filename, mdic)
+        elif format == 'npz':
+            filename = filename if filename.endswith('.npz') else filename + '.npz'
+            if eigvecs is not None:
+                np.savez(filename, eigvals=eigvals, eigvecs=eigvecs)
+            else:
+                np.savez(filename, eigvals=eigvals)
+        elif format == 'npy':
+            np.save(filename + '_eigvals.npy', eigvals)
+            if eigvecs is not None:
+                np.save(filename + '_eigvecs.npy', eigvecs)
+        else:
+            raise ValueError("format must be 'npz', 'npy' or 'mat'")
+
+    def save_to_mat(self, filename, **variables):
+       
+        filename = filename if filename.endswith('.mat') else filename + '.mat'
+        savemat(filename, variables)
+
+
+    def hold_plots(self):
+        was_interactive = plt.isinteractive()
+        plt.ioff()
+        plt.show()
+        if was_interactive:
+            plt.ion()
