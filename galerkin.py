@@ -55,6 +55,9 @@ class FourierGalerkinSolver:
             u += coeffs[i] * np.exp(1j * 2 * np.pi * n * x_grid / self.L) / sqrtL
         return u
     
+    def l2_norm(self, coeffs):
+        return np.sqrt(np.sum(np.abs(coeffs)**2))
+    
     def eigenvalues(self, term_list, k=None, return_eigenvectors=False, sort_by='real'):
         L_mat = self.assemble_operator(term_list)
         w, vr = eig(L_mat, left=False, right=True)
