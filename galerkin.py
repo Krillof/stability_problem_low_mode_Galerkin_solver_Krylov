@@ -60,6 +60,12 @@ class FourierGalerkinSolver:
         factor = (1j * k) ** order
         return factor * coeffs
     
+    def save_plot(self, coeffs, filename, plot_real=True, plot_imag=False, **plot_kwargs):
+        fig, ax = self.plot_solution(coeffs, plot_real=plot_real, plot_imag=plot_imag,
+                                    show=False, **plot_kwargs)
+        fig.savefig(filename, dpi=150, bbox_inches='tight')
+        plt.close(fig)
+    
     def compute_error(self, coeffs, exact_func, x_grid=None, num_points=200):
         if x_grid is None:
             x_grid = np.linspace(0, self.L, num_points)
